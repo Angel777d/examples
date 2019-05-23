@@ -9,7 +9,8 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 add_executable(
         cpp
         main.cpp
-        object_pool/ObjectPool.cpp
-        object_pool/ObjectPool.h
+        pool2/pool2.h
+        pool2/pool2.cpp
+        pool2/pool_types.h
 )
 

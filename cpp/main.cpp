@@ -1,81 +1,60 @@
 #include <iostream>
 #include <memory>
-#include <vector>
-#include "object_pool/ObjectPool.h"
+#include "pool2/pool_types.h"
 
 struct Node {
     int first;
+    int last;
+    int base;
+    int some;
+    int other;
 };
 
-#define NodePool std::shared_ptr<pool::ObjectPool<Node>>
+void test_three(pool::PoolType<Node> *pool) {
+    std::cout << "Test 3 started:" << std::endl << std::endl;
 
+    auto node1 = pool->get();
+    std::cout << "get node1: " << node1->first << std::endl;
 
-void test_one(const NodePool &pool_obj) {
-    int len = 3;
-    std::cout << std::endl << "Test 1 started:" << std::endl;
-    std::vector<Node *> tmp_nodes;
-    for (int i = 0; i < len; ++i) {
-        Node *item = pool_obj->getItem();
-        item->first = i;
-        tmp_nodes.push_back(item);
-    }
+    auto node2 = pool->get();
+    std::cout << "get node2: " << node2->first << std::endl;
 
-    Node *innerNode = pool_obj->getItem();
-    innerNode->first = 100500;
-    pool_obj->freeItem(innerNode);
+    auto node3 = pool->get();
+    std::cout << "get node3: " << node3->first << std::endl;
 
-    for (int i = 0; i < len; ++i) {
-        Node *item = tmp_nodes[i];
-        pool_obj->freeItem(item);
-    }
-    tmp_nodes.clear();
+    node1->first = node1->other = 1;
+    node2->first = node2->other = 2;
+    node3->first = node3->other = 3;
 
-    len *= 2;
-    for (int i = 0; i < len; ++i) {
-        Node *item = pool_obj->getItem();
-        tmp_nodes.push_back(item);
-        std::cout << "  read first:" << item->first << std::endl;
-    }
+    std::cout << "node1: " << node1->first << " " << node1->other << std::endl;
+    std::cout << "node2: " << node2->first << " " << node2->other << std::endl;
+    std::cout << "node3: " << node3->first << " " << node3->other << std::endl;
 
-    for (int i = 0; i < len; ++i) {
-        Node *item = tmp_nodes[i];
-        pool_obj->freeItem(item);
-    }
-    tmp_nodes.clear();
+    pool->release(node1);
+    pool->release(node2);
 
-    std::cout << "Test 1 ended:" << std::endl << std::endl;
-}
+    std::cout << "free node1: " << node1->first << " " << node1->other << std::endl;
+    std::cout << "free node2: " << node2->first << " " << node2->other << std::endl;
 
-void test_two(const NodePool &pool_obj) {
-    std::cout << std::endl << "Test 2 started:" << std::endl;
+    node1 = pool->get();
+    node2 = pool->get();
 
-    std::vector<Node *> tmp_nodes;
+    std::cout << "back node1: " << node1->first << " " << node1->other << std::endl;
+    std::cout << "back node2: " << node2->first << " " << node2->other << std::endl;
 
-    int count = 150;
-    for (int i = 0; i < count; ++i) {
-        tmp_nodes.push_back(pool_obj->getItem());
-        tmp_nodes[i]->first = i;
-    }
-    std::cout << "  get " << count << " items. pool size is: " << pool_obj->getSize() << std::endl;
+    node1->first = 7;
+    node2->first = 8;
 
-    for (int i = 0; i < count; ++i) {
-        pool_obj->freeItem(tmp_nodes[i]);
-    }
-    tmp_nodes.clear();
-    std::cout << "  push " << count << " items back. pool size is: " << pool_obj->getSize() << std::endl;
-    std::cout << "Test 2 ended:" << std::endl << std::endl;
+    std::cout << "node1: " << node1->first << " " << node1->other << std::endl;
+    std::cout << "node2: " << node2->first << " " << node2->other << std::endl;
+    std::cout << "node3: " << node3->first << " " << node3->other << std::endl;
+
+    std::cout << "Test 3 ended:" << std::endl << std::endl;
 }
 
 int main() {
-    NodePool pool_obj = std::make_shared<pool::ObjectPool<Node>>(100);
-    std::cout << "create pool obj. pool size is: " << pool_obj->getSize() << std::endl;
-
-    test_one(pool_obj);
-
-    std::cout << "after test_one one pool size is: " << pool_obj->getSize() << std::endl;
-
-    test_two(pool_obj);
-
+    auto pool2 = std::make_shared<pool::PoolType<Node>>(5);
+    test_three(pool2.get());
     std::cout << "End\n";
 
     return 0;
